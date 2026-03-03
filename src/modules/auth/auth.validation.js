@@ -4,12 +4,12 @@
    REGISTER (STEP 1)
 ========================= */
 exports.validateRegister = (req, res, next) => {
-  const { employee_id, full_name, email, mobile, password } = req.body;
+  const { employee_id, full_name, email, mobile } = req.body;
 
-  if (!employee_id || !full_name || !email || !mobile || !password) {
+  if (!employee_id || !full_name || !email || !mobile) {
     return res.status(400).json({
       success: false,
-      error: "employee_id, full_name, email, mobile, password are required"
+      error: "employee_id, full_name, email, mobile are required"
     });
   }
 

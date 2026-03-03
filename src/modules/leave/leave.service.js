@@ -2,40 +2,50 @@
 
 const pool = require("../../config/db");
 
-exports.applyLeave = async ({ emp_id, from_date, to_date, reason }) => {
+/* ================= APPLY LEAVE ================= */
+exports.applyLeave = async (data) => {
+
+  const { employee_id, leave_type, reason, start_date, end_date } = data;
+
   const result = await pool.query(
-    `INSERT INTO leaves 
-     (emp_id, from_date, to_date, reason, status, applied_at)
-     VALUES ($1,$2,$3,$4,'Pending',NOW())
+    `INSERT INTO tmpvl.leaves
+     (employee_id, leave_type, reason, start_date, end_date)
+     VALUES ($1,$2,$3,$4,$5)
      RETURNING *`,
-    [emp_id, from_date, to_date, reason]
+    [employee_id, leave_type, reason, start_date, end_date]
   );
 
   return result.rows[0];
 };
 
-exports.getMyLeaves = async (emp_id) => {
+
+/* ================= GET MY LEAVES ================= */
+exports.getMyLeaves = async (employee_id) => {
+
   const result = await pool.query(
-    `SELECT * FROM leaves
-     WHERE emp_id=$1
+    `SELECT * FROM tmpvl.leaves
+     WHERE employee_id=$1
      ORDER BY applied_at DESC`,
-    [emp_id]
+    [employee_id]
   );
 
   return result.rows;
 };
 
-exports.updateLeaveStatus = async (leave_id, status) => {
-  if (!["Approved", "Rejected"].includes(status)) {
-    throw { statusCode: 400, message: "Invalid status" };
-  }
+
+/* ================= UPDATE STATUS (ADMIN) ================= */
+exports.updateStatus = async (data) => {
+
+  const { leave_id, status, reviewed_by } = data;
 
   const result = await pool.query(
-    `UPDATE leaves
-     SET status=$1
-     WHERE id=$2
+    `UPDATE tmpvl.leaves
+     SET status=$1,
+         reviewed_at=NOW(),
+         reviewed_by=$2
+     WHERE id=$3
      RETURNING *`,
-    [status, leave_id]
+    [status, reviewed_by, leave_id]
   );
 
   return result.rows[0];
